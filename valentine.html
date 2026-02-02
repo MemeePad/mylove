@@ -609,7 +609,7 @@
             }
         }
 
-        const secretPhrase = "WILL YOU BE MY VALENTINE";
+        const secretPhrase = "WILL YOU BE MY VALENTINE?";
         let guessedLetters = [];
         
         function initHangman() {
@@ -655,7 +655,7 @@
 
         function createKeyboard() {
             const keyboard = document.getElementById('hangmanKeyboard');
-            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ?";
             keyboard.innerHTML = '';
             alphabet.split('').forEach(letter => {
                 const btn = document.createElement('button');
@@ -792,4 +792,5 @@
         document.head.appendChild(styleSheet);
     </script>
 </body>
+
 </html>
