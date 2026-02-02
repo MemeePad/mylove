@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unlock the Question...</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+            font-family: 'Times New Roman', Times, serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            text-align: center;
+            color: #c2185b;
+            user-select: none;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #d81b60;
+            text-shadow: 2px 2px 4px rgba(255,255,255,0.6);
+            font-weight: bold;
+        }
+
+        p {
+            font-size: 1.3rem;
+            margin-bottom: 25px;
+            color: #4a4a4a;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.96);
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+            max-width: 650px; 
+            width: 90%;
+            position: relative;
+            z-index: 10;
+            transition: height 0.3s ease;
+        }
+
+        .btn {
+            background-color: #ff4081;
+            color: white;
+            border: none;
+            padding: 15px 35px;
+            font-size: 1.3rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.2s;
+            font-family: 'Times New Roman', Times, serif;
+            margin: 10px;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background-color: #ffc1e3;
+            height: 80px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            transition: transform 0.3s;
+        }
+        .card.flipped {
+            background-color: #fff;
+            border: 2px solid #ff4081;
+            transform: rotateY(180deg);
+        }
+
+        .hearts-area {
+            position: relative;
+            width: 100%;
+            height: 350px;
+            background-color: #ffe6f2;
+            border-radius: 15px;
+            border: 2px dashed #ff4081;
+            overflow: hidden;
+            margin-bottom: 15px;
+            cursor: crosshair;
+        }
+        .hidden-heart {
+            position: absolute;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: transform 0.2s;
+            user-select: none;
+        }
+        .hidden-heart:hover { transform: scale(1.3); opacity: 1; }
+
+        canvas {
+            background: #fff0f5;
+            border: 2px solid #ff4081;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            max-width: 100%;
+        }
+
+        .meter-container {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 20px;
+            height: 40px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 3px solid #ff4081;
+            position: relative;
+        }
+        .meter-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff9a9e, #ff4081);
+            transition: width 0.1s linear;
+        }
+        .meter-text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            line-height: 40px;
+            color: #333;
+            font-weight: bold;
+            z-index: 2;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        .slot-machine {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: #ffc1e3;
+            padding: 20px;
+            border-radius: 15px;
+            border: 4px solid #ff4081;
+        }
+        .reel {
+            width: 80px;
+            height: 100px;
+            background: white;
+            border-radius: 10px;
+            border: 2px solid #d81b60;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .word-display {
+            font-size: 2rem;
+            letter-spacing: 3px;
+            margin: 20px 0;
+            font-weight: bold;
+            line-height: 1.5;
+        }
+        .keyboard {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+        .key {
+            width: 35px;
+            height: 35px;
+            background: #ffc1e3;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            color: #c2185b;
+            font-size: 1rem;
+            font-family: 'Times New Roman', Times, serif;
+        }
+        .key:disabled {
+            background: #ddd;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 30px;
+            height: 80px;
+            align-items: center;
+            position: relative;
+        }
+
+        #finalButtons {
+            opacity: 0;
+            transition: opacity 2s ease-in;
+        }
+        
+        #noBtn {
+            background-color: #f44336; 
+            z-index: 100;
+            transition: none;
+            color: white; 
+        }
+        #yesBtn {
+            background-color: #4CAF50;
+            z-index: 100;
+            font-size: 2rem;
+            padding: 15px 50px;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.6);
+            color: white;
+            transition: transform 0.2s, width 0.2s, height 0.2s;
+        }
+
+        .success-text {
+            font-size: 1.3rem;
+            color: #333;
+            background: #fff0f5;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px dashed #ff4081;
+            margin-top: 20px;
+        }
+
+        .confetti {
+            position: fixed;
+            top: -10px;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bgMusic" loop>
+        <source src="her_eyes.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="screen1" class="container">
+        <h1>Hey my lovely MARTA!</h1>
+        <p>To unlock the most important question of the year (NOT LATE), you must prove your skills by completing a few challenges...</p>
+        <button class="btn" onclick="nextScreen(1)">Start Challenges</button>
+    </div>
+
+    <div id="screen2" class="container hidden">
+        <h1>1. Simple Beginning</h1>
+        <p>Find and match all 6 pairs to understand if you really want it!</p>
+        <div class="memory-grid" id="memoryGrid"></div>
+        <button id="memoryNextBtn" class="btn hidden" onclick="nextScreen(2)">Next Level &rarr;</button>
+    </div>
+
+    <div id="screen3" class="container hidden">
+        <h1>2. See if the heart wants you</h1>
+        <p>We need to get the big heart up and strong.</p>
+        <div class="hearts-area" id="heartsArea"></div>
+        <div id="heartsCount" style="font-weight: bold;">Found: 0 / 15</div>
+        <button id="heartsNextBtn" class="btn hidden" onclick="nextScreen(3)">Next Level &rarr;</button>
+    </div>
+
+    <div id="screen4" class="container hidden">
+        <h1>3. Plinko of Love</h1>
+        <p>Let us figure out if you do indeed love me now...<br>Do avoid the center! <br>(click to drop your hearts)</p>
+        <canvas id="plinkoCanvas" width="400" height="400"></canvas>
+        <div id="plinkoMessage" style="height: 20px; font-weight: bold; margin-bottom:5px;"></div>
+        <button id="plinkoNextBtn" class="btn hidden" onclick="nextScreen(4)">Next Level &rarr;</button>
+    </div>
+
+    <div id="screen5" class="container hidden">
+        <h1>4. Lets power up MY Heart</h1>
+        <p><strong>Just Click!</strong><br>(lowkey not that hard...)</p>
+        <div class="meter-container">
+            <div class="meter-text" id="meterText">0%</div>
+            <div id="meterFill" class="meter-fill"></div>
+        </div>
+        <button class="btn" onclick="fillMeter()" style="font-size: 1.5rem;">💖 CLICK FAST! 💖</button>
+        <button id="meterNextBtn" class="btn hidden" onclick="nextScreen(5)">Next Level &rarr;</button>
+    </div>
+
+    <div id="screen6" class="container hidden">
+        <h1>5. How's your luck in love?</h1>
+        <p><strong>Feeling lucky?</strong><br>Did you find love or did love find you?</p>
+        <div class="slot-machine">
+            <div id="reel1" class="reel">❓</div>
+            <div id="reel2" class="reel">❓</div>
+            <div id="reel3" class="reel">❓</div>
+        </div>
+        <div id="slotMessage" style="height: 25px; font-weight: bold; margin-bottom: 10px;"></div>
+        <button id="spinBtn" class="btn" onclick="spinSlots()">SPIN!</button>
+        <button id="slotNextBtn" class="btn hidden" onclick="nextScreen(6)">Unlock Final Question &rarr;</button>
+    </div>
+
+    <div id="screen7" class="container hidden">
+        <h1>Final Question...</h1>
+        <p>Solve the puzzle to reveal the question...</p>
+        <div id="hangmanWord" class="word-display"></div>
+        <div id="hangmanKeyboard" class="keyboard"></div>
+        
+        <div id="finalButtons" class="hidden button-group">
+            <button id="yesBtn" class="btn" onclick="nextScreen(7)">YES!</button>
+            <button id="noBtn" class="btn" onclick="handleNoClick()">No</button>
+        </div>
+    </div>
+
+    <div id="screen8" class="container hidden">
+        <h1>❤️ I Love You! ❤️</h1>
+        <div class="success-text">
+            <p><strong>See, I didn't forget...</strong></p>
+            <p>And plus, who said it must be asked before January? To my knowledge, you just ask someone to do something in advance...</p>
+            <p>And two weeks seems very well enough! 😉</p>
+            <p>And now you're my valentine yay!</p>
+        </div>
+        <p style="font-size: 4rem; margin-top:20px;">❤️🥰🌹🍫❤️</p>
+    </div>
+
+    <script>
+        function nextScreen(current) {
+            document.getElementById(`screen${current}`).classList.add('hidden');
+            document.getElementById(`screen${current + 1}`).classList.remove('hidden');
+            
+            if (current === 1) initMemoryGame();
+            if (current === 2) initFindHearts();
+            if (current === 3) initPlinko();
+            if (current === 4) initMeterDecay();
+            if (current === 6) initHangman();
+            if (current === 7) {
+                isBouncing = false; 
+                startConfetti();
+            }
+        }
+
+        const icons = ['🌹', '🌹', '🍫', '🍫', '🧸', '🧸', '❤️', '❤️', '💌', '💌', '💋', '💋'];
+        let flippedCards = [];
+        let matchedPairs = 0;
+
+        function initMemoryGame() {
+            const grid = document.getElementById('memoryGrid');
+            icons.sort(() => 0.5 - Math.random());
+            grid.innerHTML = '';
+            icons.forEach(icon => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => {
+                    if (flippedCards.length < 2 && !card.classList.contains('flipped') && !card.classList.contains('matched')) {
+                        card.classList.add('flipped');
+                        card.innerText = icon;
+                        flippedCards.push(card);
+                        if (flippedCards.length === 2) checkMatch();
+                    }
+                };
+                grid.appendChild(card);
+            });
+        }
+
+        function checkMatch() {
+            const [c1, c2] = flippedCards;
+            if (c1.innerText === c2.innerText) {
+                c1.classList.add('matched'); c2.classList.add('matched');
+                matchedPairs++;
+                flippedCards = [];
+                if (matchedPairs === 6) document.getElementById('memoryNextBtn').classList.remove('hidden');
+            } else {
+                setTimeout(() => {
+                    c1.classList.remove('flipped'); c1.innerText = '';
+                    c2.classList.remove('flipped'); c2.innerText = '';
+                    flippedCards = [];
+                }, 800);
+            }
+        }
+
+        let heartsFound = 0;
+        const totalHearts = 15;
+        function initFindHearts() {
+            const area = document.getElementById('heartsArea');
+            area.innerHTML = '';
+            for(let i=0; i<totalHearts; i++) {
+                const heart = document.createElement('div');
+                heart.innerText = '❤️';
+                heart.className = 'hidden-heart';
+                const size = Math.floor(Math.random() * 30) + 12;
+                heart.style.fontSize = `${size}px`;
+                heart.style.left = Math.random() * 90 + '%';
+                heart.style.top = Math.random() * 90 + '%';
+                heart.style.transform = `rotate(${Math.random() * 360}deg)`;
+                
+                heart.onclick = function() {
+                    if(this.style.opacity === '0') return;
+                    this.style.opacity = '0';
+                    this.style.pointerEvents = 'none';
+                    heartsFound++;
+                    document.getElementById('heartsCount').innerText = `Found: ${heartsFound} / ${totalHearts}`;
+                    if(heartsFound === totalHearts) document.getElementById('heartsNextBtn').classList.remove('hidden');
+                }
+                area.appendChild(heart);
+            }
+        }
+
+        const canvas = document.getElementById('plinkoCanvas');
+        const ctx = canvas.getContext('2d');
+        let balls = [];
+        const pegs = [];
+        const sideGap = 40; 
+        let plinkoActive = true;
+
+        function initPlinko() {
+            const rows = 7;
+            for (let r = 0; r < rows; r++) {
+                const cols = r % 2 === 0 ? 7 : 6;
+                for (let c = 0; c < cols; c++) {
+                    const x = c * 55 + (r % 2 === 0 ? 35 : 65);
+                    const y = r * 50 + 50;
+                    pegs.push({ x, y, r: 4 });
+                }
+            }
+            drawPlinko();
+            updatePlinko();
+        }
+
+        function drawPlinko() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#ff4081'; 
+            ctx.fillRect(0, canvas.height - 30, sideGap, 30);
+            ctx.fillRect(canvas.width - sideGap, canvas.height - 30, sideGap, 30);
+            ctx.fillStyle = '#ffdde1'; 
+            ctx.fillRect(sideGap, canvas.height - 30, canvas.width - (sideGap*2), 30);
+            
+            ctx.font = 'bold 12px Times New Roman';
+            ctx.fillStyle = 'white';
+            ctx.fillText('YES', 8, canvas.height - 10);
+            ctx.fillText('YES', canvas.width - 32, canvas.height - 10);
+            ctx.fillStyle = '#555';
+            ctx.font = 'bold 16px Times New Roman';
+            ctx.fillText('NO', canvas.width / 2 - 12, canvas.height - 10);
+
+            ctx.fillStyle = '#c2185b';
+            pegs.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill(); });
+
+            balls.forEach(ball => {
+                ctx.fillStyle = 'red';
+                ctx.beginPath();
+                ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+                ctx.fill();
+            });
+        }
+
+        function updatePlinko() {
+            balls.forEach((ball, index) => {
+                ball.vy += 0.25; 
+                ball.vx *= 0.99; 
+                ball.y += ball.vy;
+                ball.x += ball.vx;
+
+                if (ball.x < ball.r || ball.x > canvas.width - ball.r) ball.vx *= -0.7;
+
+                pegs.forEach(peg => {
+                    const dx = ball.x - peg.x;
+                    const dy = ball.y - peg.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < ball.r + peg.r) {
+                        const angle = Math.atan2(dy, dx);
+                        const speed = Math.sqrt(ball.vx*ball.vx + ball.vy*ball.vy);
+                        const randomScatter = (Math.random() - 0.5) * 3;
+                        ball.vx = Math.cos(angle) * speed * 0.5 + randomScatter;
+                        ball.vy = Math.sin(angle) * speed * 0.5;
+                        ball.x += Math.cos(angle) * 2;
+                        ball.y += Math.sin(angle) * 2;
+                    }
+                });
+
+                if (Math.abs(ball.vy) < 0.2 && ball.y < canvas.height - 50) ball.vy += 0.5;
+
+                if (ball.y > canvas.height - 30) {
+                    if (ball.x < sideGap || ball.x > canvas.width - sideGap) {
+                        document.getElementById('plinkoMessage').innerText = "YES! You got it!";
+                        document.getElementById('plinkoNextBtn').classList.remove('hidden');
+                        plinkoActive = false;
+                    } 
+                    balls.splice(index, 1);
+                }
+            });
+
+            drawPlinko();
+            requestAnimationFrame(updatePlinko);
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (!plinkoActive) return;
+            balls.push({ 
+                x: canvas.width / 2, 
+                y: 20, 
+                r: 8, 
+                vx: (Math.random()-0.5)*4, 
+                vy: 0 
+            });
+            document.getElementById('plinkoMessage').innerText = "";
+        });
+
+        let meterValue = 0;
+        let decayInterval = null;
+        let meterComplete = false;
+
+        function initMeterDecay() {
+            decayInterval = setInterval(() => {
+                if (meterValue > 0 && !meterComplete) {
+                    meterValue -= 1; 
+                    updateMeterVisuals();
+                }
+            }, 60); 
+        }
+
+        function fillMeter() {
+            if (!meterComplete) {
+                meterValue += 4; 
+                if (meterValue >= 100) {
+                    meterValue = 100;
+                    meterComplete = true;
+                    clearInterval(decayInterval);
+                    document.getElementById('meterNextBtn').classList.remove('hidden');
+                }
+                updateMeterVisuals();
+            }
+        }
+
+        function updateMeterVisuals() {
+            document.getElementById('meterFill').style.width = meterValue + '%';
+            document.getElementById('meterText').innerText = Math.floor(meterValue) + '%';
+        }
+
+        const slotIcons = ['🍒', '🍋', '🍇', '💎', '❤️'];
+        let isSpinning = false;
+        let spinsCount = 0;
+
+        function spinSlots() {
+            if (isSpinning) return;
+            isSpinning = true;
+            spinsCount++;
+            
+            const spinBtn = document.getElementById('spinBtn');
+            spinBtn.disabled = true;
+            spinBtn.innerText = "Spinning...";
+            document.getElementById('slotMessage').innerText = "";
+
+            const reel1 = document.getElementById('reel1');
+            const reel2 = document.getElementById('reel2');
+            const reel3 = document.getElementById('reel3');
+
+            let counter = 0;
+            const interval = setInterval(() => {
+                reel1.innerText = slotIcons[Math.floor(Math.random() * slotIcons.length)];
+                reel2.innerText = slotIcons[Math.floor(Math.random() * slotIcons.length)];
+                reel3.innerText = slotIcons[Math.floor(Math.random() * slotIcons.length)];
+                counter++;
+                
+                if (counter > 20) {
+                    clearInterval(interval);
+                    determineSlotResult();
+                }
+            }, 100);
+        }
+
+        function determineSlotResult() {
+            const win = Math.random() < 0.2 || spinsCount > 10;
+            
+            const r1 = document.getElementById('reel1');
+            const r2 = document.getElementById('reel2');
+            const r3 = document.getElementById('reel3');
+
+            if (win) {
+                r1.innerText = '❤️'; r2.innerText = '❤️'; r3.innerText = '❤️';
+                document.getElementById('slotMessage').innerText = "JACKPOT!!! ❤️❤️❤️";
+                document.getElementById('slotNextBtn').classList.remove('hidden');
+                document.getElementById('spinBtn').classList.add('hidden');
+            } else {
+                let i1, i2, i3;
+                do {
+                    i1 = Math.floor(Math.random() * slotIcons.length);
+                    i2 = Math.floor(Math.random() * slotIcons.length);
+                    i3 = Math.floor(Math.random() * slotIcons.length);
+                } while (slotIcons[i1] === '❤️' && slotIcons[i2] === '❤️' && slotIcons[i3] === '❤️');
+                
+                r1.innerText = slotIcons[i1];
+                r2.innerText = slotIcons[i2];
+                r3.innerText = slotIcons[i3];
+                
+                document.getElementById('slotMessage').innerText = "So close! Spin again!";
+                document.getElementById('spinBtn').disabled = false;
+                document.getElementById('spinBtn').innerText = "SPIN!";
+                isSpinning = false;
+            }
+        }
+
+        const secretPhrase = "WILL YOU BE MY VALENTINE";
+        let guessedLetters = [];
+        
+        function initHangman() {
+            updateHangmanDisplay();
+            createKeyboard();
+        }
+
+        function updateHangmanDisplay() {
+            const displayContainer = document.getElementById('hangmanWord');
+            let displayText = "";
+            let completed = true;
+            let i = 0;
+
+            for (let char of secretPhrase) {
+                if (i === 15) displayText += "<br>";
+                if (char === " ") {
+                    displayText += "&nbsp;&nbsp;";
+                } else if (guessedLetters.includes(char)) {
+                    displayText += char + " ";
+                } else {
+                    displayText += "_ ";
+                    completed = false;
+                }
+                i++;
+            }
+            displayContainer.innerHTML = displayText;
+
+            if (completed) {
+                document.getElementById('hangmanKeyboard').classList.add('hidden');
+                document.querySelector('#screen7 p').innerText = "Question Unlocked!";
+                
+                setTimeout(() => {
+                    const btnGroup = document.getElementById('finalButtons');
+                    btnGroup.classList.remove('hidden');
+                    
+                    setTimeout(() => {
+                        btnGroup.style.opacity = '1';
+                    }, 50);
+                    
+                }, 3000); 
+            }
+        }
+
+        function createKeyboard() {
+            const keyboard = document.getElementById('hangmanKeyboard');
+            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            keyboard.innerHTML = '';
+            alphabet.split('').forEach(letter => {
+                const btn = document.createElement('button');
+                btn.innerText = letter;
+                btn.className = 'key';
+                btn.onclick = () => {
+                    btn.disabled = true;
+                    guessedLetters.push(letter);
+                    updateHangmanDisplay();
+                };
+                keyboard.appendChild(btn);
+            });
+        }
+
+        const noPhrases = [
+            "No", 
+            "Are you sure?", 
+            "What if I asked really nicely?", 
+            "Pretty please", 
+            "How about our song :)", 
+            "With a box of chocolates on top...", 
+            "PLEASE POOKIE", 
+            "I am going to die...", 
+            "Yep im dead", 
+            "ok ur talking to my ghost", 
+            "please babe", 
+            ":((((", 
+            "PRETTY PLEASE", 
+            "BUT I LOVE YOU!", 
+            "No :("
+        ];
+        
+        let noClickCount = 0;
+        let isBouncing = false;
+        let yesPos = {x: 0, y: 0, dx: 2, dy: 2};
+
+        function handleNoClick() {
+            noClickCount++;
+            
+            if (noClickCount < noPhrases.length) {
+                document.getElementById('noBtn').innerText = noPhrases[noClickCount];
+            }
+
+            const yesBtn = document.getElementById('yesBtn');
+            const currentScale = 1 + (noClickCount * 0.15);
+            yesBtn.style.transform = `scale(${currentScale})`;
+
+            if (noClickCount === 1) {
+                const rect = yesBtn.getBoundingClientRect();
+                yesPos.x = rect.left;
+                yesPos.y = rect.top;
+                yesBtn.style.position = 'fixed';
+                yesBtn.style.left = yesPos.x + 'px';
+                yesBtn.style.top = yesPos.y + 'px';
+                isBouncing = true;
+                requestAnimationFrame(bounceYesButton);
+            }
+
+            if (noClickCount === 4) {
+                const music = document.getElementById('bgMusic');
+                music.volume = 0.5;
+                music.play().catch(e => console.log("Audio play failed:", e));
+            }
+
+            if (noClickCount === 14) {
+                const noBtn = document.getElementById('noBtn');
+                noBtn.innerText = "No :(";
+                moveNoButton();
+                noBtn.onmouseover = moveNoButton;
+            }
+        }
+
+        function bounceYesButton() {
+            if (!isBouncing) return;
+
+            const yesBtn = document.getElementById('yesBtn');
+            const rect = yesBtn.getBoundingClientRect();
+            
+            yesPos.x += yesPos.dx;
+            yesPos.y += yesPos.dy;
+
+            if (yesPos.x <= 0 || yesPos.x + rect.width >= window.innerWidth) {
+                yesPos.dx *= -1;
+            }
+            if (yesPos.y <= 0 || yesPos.y + rect.height >= window.innerHeight) {
+                yesPos.dy *= -1;
+            }
+
+            yesBtn.style.left = yesPos.x + 'px';
+            yesBtn.style.top = yesPos.y + 'px';
+            
+            requestAnimationFrame(bounceYesButton);
+        }
+
+        function moveNoButton() {
+            const btn = document.getElementById('noBtn');
+            const x = Math.random() * (window.innerWidth - 100);
+            const y = Math.random() * (window.innerHeight - 100);
+            btn.style.position = 'fixed';
+            btn.style.left = x + 'px';
+            btn.style.top = y + 'px';
+        }
+
+        function startConfetti() {
+            const colors = ['#ff4081', '#ff9a9e', '#a8e6cf', '#fdffab'];
+            for (let i = 0; i < 300; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw'; 
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                const duration = Math.random() * 3 + 3;
+                confetti.style.animation = `fall ${duration}s linear forwards`;
+                confetti.style.animationDelay = Math.random() * 2 + 's';
+                document.body.appendChild(confetti);
+            }
+            setInterval(() => {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animation = `fall ${Math.random() * 3 + 3}s linear forwards`;
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 6000);
+            }, 200);
+        }
+
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = `
+            @keyframes fall {
+                0% { top: -10px; transform: rotate(0deg); }
+                100% { top: 100vh; transform: rotate(720deg); }
+            }
+        `;
+        document.head.appendChild(styleSheet);
+    </script>
+</body>
+</html>
